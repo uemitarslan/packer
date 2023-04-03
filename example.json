@@ -1,0 +1,84 @@
+{
+  "variables": {
+  "vsphere-server": "$venter_fqdn",
+  "vsphere-user": "$your_vcenter_user",
+  "vsphere-password": "$your_vcenter_password",
+  "vsphere-datacenter": "$your_vcenter_dc",
+  "vsphere-cluster": "$your_vcenter_cluster",
+  "vsphere-network": "$your_vcenter_cluster",
+  "vsphere-datastore": "$your_vcenter_datastore",
+  "vm_name": "$your_vm_name",
+  "vm-cpu-num": "$number_of_cpus",
+  "vm-mem-size": "$memory_size",
+  "vm-disk-size": "$disk_size",
+  "iso_url": "[$datastore] $vcenter_folder_on_datastore/$iso_name",
+  // example: "iso_url": "[ISOS] sles15/sp4/SLE-15-SP4-Full-x86_64-QU1.1-Media1.iso"
+  "webserver": "http://$your_webserver_ip",
+  "autoyast": "$path_to_autoyast_on_webserver"
+  },
+
+  "builders": [
+    {
+      "CPUs": "$number_of_cpus",
+      "RAM": "$ram_size" ,
+      "RAM_reserve_all": false,
+      "boot_keygroup_interval": "500ms",
+      "boot_wait": "10s",
+      "disable_shutdown": "false",
+      "boot_command": [
+	 "<esc><enter><wait>",
+         "linux ",
+         "net.ifnames=0 ifcfg=eth0=dhcp lang=en_US textmode=1 autoyast={{ user `webserver` }}{{ user `autoyast` }} YAST_SKIP_XML_VALIDATION=1",
+         "<wait><enter><wait>"
+      ],
+      "cluster": "{{user `vsphere-cluster`}}",
+      "convert_to_template": true,
+      "datacenter": "{{user `vsphere-datacenter`}}",
+      "datastore": "{{user `vsphere-datastore`}}",
+      "disk_controller_type": "pvscsi",
+      "floppy_files": [
+      ],
+      "guest_os_type": "sles15_64Guest",
+      "insecure_connection": "true",
+      "iso_paths": [
+        "{{user `iso_url`}}"
+      ],
+      "network_adapters": [
+        {
+          "network": "{{user `vsphere-network`}}",
+          "network_card": "vmxnet3"
+        }
+      ],
+      "notes": "Build via Packer",
+      "password": "{{user `vsphere-password`}}",
+      // The user/password below should be defined/setup in your autoyast file.
+      "ssh_password": "$your_password",
+      "ssh_username": "$your_user",
+      "storage": [
+        {
+          "disk_size": $disk_size,
+          "disk_thin_provisioned": true
+        }
+      ],
+      "type": "vsphere-iso",
+      "username": "{{user `vsphere-user`}}",
+      "vcenter_server": "{{user `vsphere-server`}}",
+      "vm_name": "{{user `vm_name`}}"
+    }
+  ],
+
+// The section below does execute a post installation script that cleans up the VM/Template
+// https://github.com/SUSE/clone-master-clean-up/blob/master/clone-master-clean-up.sh
+   "provisioners": [
+        {
+            "type": "shell",
+            "execute_command": "{{ .Vars }} bash '{{ .Path }}'",
+            "pause_before": "50s",
+            "scripts": [
+                "scripts/post.sh"
+            ]
+        }
+    ]
+
+
+}
