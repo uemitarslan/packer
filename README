@@ -10,8 +10,6 @@ https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-
 
 https://documentation.suse.com/sles/15-SP4/single-html/SLES-autoyast/index.html
 
-Note: A sample autoyast file is provided in the github repo
-
 - A Vcenter user with correct permissions 
 
 https://github.com/vmware-samples/packer-examples-for-vsphere/blob/main/README.md
